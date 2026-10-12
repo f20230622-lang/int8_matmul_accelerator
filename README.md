@@ -143,8 +143,6 @@ The memory model also introduces randomized behavior to exercise transaction han
 ### Reported Verification Results
 
 - All project tests pass in the current working setup.
-- 21 end-to-end test jobs are exercised, including six expected-error cases.
-- 15 jobs complete successfully.
 - 4,096 DRAM words are checked against the Python reference model.
 - Successful C writebacks use four 32-beat bursts, transferring 128 beats.
 
