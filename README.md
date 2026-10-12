@@ -171,7 +171,7 @@ The larger improvement from widening the DMA datapath applies to the reported tr
 
 ## FPGA Synthesis and Timing Results
 
-The accelerator was implemented for the FPGA target configured in the Vivado project. The reported implementation results show that the design meets the specified timing constraints, with no failing setup or hold endpoints.
+The accelerator was implemented for the xc7z020clg484-1 FPGA board configured in the Vivado project. The reported implementation results show that the design meets the specified timing constraints, with no failing setup or hold endpoints.
 
 ### Resource Utilization
 
