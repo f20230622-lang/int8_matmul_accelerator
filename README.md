@@ -207,5 +207,3 @@ Potential next steps include:
 - Measuring end-to-end throughput and latency on physical FPGA hardware.
 - Investigating additional bottlenecks in operand loading, computation scheduling, and result writeback.
 - Evaluating resource, timing, and power trade-offs for alternative datapath configurations.
-
-No post-route timing, FPGA resource-utilization, power-consumption, or physical-hardware performance results are claimed in this repository unless separately measured and documented.
