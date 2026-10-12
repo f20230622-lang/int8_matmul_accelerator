@@ -1,0 +1,110 @@
+`timescale 1ns/1ps
+
+module tb_mmul_core;
+
+    localparam N       = 16;
+    localparam NTRIALS = 24;
+
+    reg clk   = 1'b0;
+    reg rst_n = 1'b0;
+    reg start = 1'b0;
+
+    reg         wr_en   = 1'b0;
+    reg  [5:0]  wr_addr = 6'd0;
+    reg  [31:0] a_wdata = 32'd0;
+    reg  [31:0] b_wdata = 32'd0;
+
+    wire [63:0]       rd_k;
+    wire [127:0]      a_data, b_data, a_row_in, b_col_in;
+    wire [32*N*N-1:0] c_out;
+    wire              busy, done, clear;
+
+    reg [31:0] a_words [0:NTRIALS*64-1];
+    reg [31:0] b_words [0:NTRIALS*64-1];
+    reg [31:0] exp_mem [0:NTRIALS*N*N-1];
+
+    integer t, w, idx, cyc, lat, errors;
+    reg [31:0] got;
+
+    a_buf u_abuf (
+        .clk(clk), .wr_we(wr_en ? (wr_addr[0] ? 2'b10 : 2'b01) : 2'b00),
+        .wr_addr(wr_addr[5:1]), .wr_data({a_wdata, a_wdata}),
+        .rd_k(rd_k), .rd_data(a_data)
+    );
+    b_buf u_bbuf (
+        .clk(clk), .wr_we(wr_en ? (wr_addr[0] ? 2'b10 : 2'b01) : 2'b00),
+        .wr_addr(wr_addr[5:1]), .wr_data({b_wdata, b_wdata}),
+        .rd_k(rd_k), .rd_data(b_data)
+    );
+    mmul_feeder u_feed (
+        .clk(clk), .rst_n(rst_n), .start(start), .busy(busy), .done(done),
+        .clear(clear), .rd_k(rd_k), .a_data(a_data), .b_data(b_data),
+        .a_row_in(a_row_in), .b_col_in(b_col_in)
+    );
+    systolic_array #(.N(N)) u_arr (
+        .clk(clk), .rst_n(rst_n), .clear(clear),
+        .a_row_in(a_row_in), .b_col_in(b_col_in), .c_out(c_out)
+    );
+
+    always #5 clk = ~clk;
+
+    initial begin
+        errors = 0;
+        lat    = 0;
+        $readmemh("core_a_words.hex", a_words);
+        $readmemh("core_b_words.hex", b_words);
+        $readmemh("core_exp.hex",     exp_mem);
+
+        repeat (4) @(negedge clk);
+        rst_n = 1'b1;
+        @(negedge clk);
+
+        for (t = 0; t < NTRIALS; t = t + 1) begin
+            // load A and B, one word per cycle (no reset between trials)
+            for (w = 0; w < 64; w = w + 1) begin
+                wr_en   = 1'b1;
+                wr_addr = w;
+                a_wdata = a_words[t*64 + w];
+                b_wdata = b_words[t*64 + w];
+                @(negedge clk);
+            end
+            wr_en = 1'b0;
+            @(negedge clk);
+
+            // start pulse, then wait for done
+            start = 1'b1;
+            @(negedge clk);
+            start = 1'b0;
+            cyc = 0;
+            while (!done && cyc < 200) begin
+                @(negedge clk);
+                cyc = cyc + 1;
+            end
+            if (t == 0) lat = cyc;
+
+            if (cyc >= 200) begin
+                errors = errors + 1;
+                $display("TIMEOUT on trial %0d: done never asserted", t);
+            end else begin
+                for (idx = 0; idx < N*N; idx = idx + 1) begin
+                    got = c_out[32*idx +: 32];
+                    if (got !== exp_mem[t*N*N + idx]) begin
+                        errors = errors + 1;
+                        if (errors <= 10)
+                            $display("MISMATCH trial %0d C[%0d][%0d]: got %0d, expected %0d",
+                                     t, idx/N, idx%N, $signed(got),
+                                     $signed(exp_mem[t*N*N + idx]));
+                    end
+                end
+            end
+        end
+
+        if (errors == 0)
+            $display("TEST PASSED: %0d trials x %0d elements, start->done = %0d cycles",
+                     NTRIALS, N*N, lat);
+        else
+            $display("TEST FAILED: %0d errors", errors);
+        $finish;
+    end
+
+endmodule

@@ -1,0 +1,39 @@
+# Python environment and cache
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.idea/
+
+# Vivado generated files
+project_1/project_1.cache/
+project_1/project_1.hw/
+project_1/project_1.ip_user_files/
+project_1/project_1.runs/
+project_1/project_1.sim/
+project_1/.Xil/
+project_1/**/*.jou
+project_1/**/*.log
+project_1/**/*.wdb
+project_1/**/*.vcd
+project_1/**/*.dcp
+project_1/**/*.bit
+project_1/**/*.ltx
+project_1/**/xsim.dir/
+
+# Generated simulation work directories
+project_1/python/work_top/
+project_1/python/work_dma/
+
+# Generated memory images and simulation artifacts
+top_dram_init.hex
+top_dram_final.hex
+top_script.hex
+dma_dram_init.hex
+dma_dram_final.hex
+dma_script.hex
+dma_cmat.hex
+
+# General temporary files
+*.tmp
+*.bak
