@@ -169,6 +169,46 @@ The results demonstrate functional correctness in simulation and a modest reduct
 
 The larger improvement from widening the DMA datapath applies to the reported transfer phases and should not be presented as the overall accelerator speedup.
 
+## FPGA Synthesis and Timing Results
+
+The accelerator was implemented for the FPGA target configured in the Vivado project. The reported implementation results show that the design meets the specified timing constraints, with no failing setup or hold endpoints.
+
+### Resource Utilization
+
+| Resource | Used | Available | Utilization |
+|---|---:|---:|---:|
+| LUTs | 10,353 | 53,200 | 19.46% |
+| Flip-flops | 9,095 | 106,400 | 8.55% |
+| DSPs | 192 | 220 | 87.27% |
+
+The implementation uses less than one-fifth of the available LUTs and under one-tenth of the available flip-flops, while consuming 87.27% of the available DSP resources.
+
+DSPs are the most constrained resource in this implementation. This is an important architectural consideration when evaluating further parallelism or scaling the accelerator.
+
+### Timing Summary
+
+| Timing metric | Result |
+|---|---:|
+| Worst Negative Slack (WNS) | +2.499 ns |
+| Total Negative Slack (TNS) | 0.000 ns |
+| Worst Hold Slack (WHS) | +0.236 ns |
+| Total Hold Slack (THS) | 0.000 ns |
+| Failing setup endpoints | 0 |
+| Failing hold endpoints | 0 |
+
+Vivado reports that all user-specified timing constraints are met. The positive setup and hold slack and zero failing endpoints indicate that the implementation satisfies the reported timing checks.
+
+The reported WNS is relative to the timing constraints supplied to Vivado. It should not be interpreted as the maximum achievable operating frequency without the corresponding clock constraints and timing reports.
+
+### Implementation Trade-offs
+
+The resource distribution highlights the trade-off between parallel arithmetic and FPGA resource consumption. The design uses 192 DSPs, making DSP utilization the primary resource constraint among the reported metrics.
+
+Future optimization could explore arithmetic resource sharing, alternative processing-element implementations, and different degrees of parallelism. Any such changes should be evaluated against both timing closure and end-to-end performance.
+
+These resource and timing figures describe the reported FPGA implementation; the separate latency and DMA comparisons elsewhere in this README are simulation measurements.
+
+
 ## 6. Tools and Technologies
 
 - Verilog HDL
